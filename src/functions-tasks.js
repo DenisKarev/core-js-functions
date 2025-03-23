@@ -144,8 +144,24 @@ function memoize(func) {
  * }, 2);
  * retryer() => 2
  */
-function retry(/* func, attempts */) {
-  throw new Error('Not implemented');
+function retry(func, attempts) {
+  return function r() {
+    let count = attempts;
+    let res;
+    try {
+      res = func();
+    } catch (error) {
+      while (count) {
+        try {
+          res = func();
+        } catch {
+          /* empty */
+        }
+        count -= 1;
+      }
+    }
+    return res;
+  };
 }
 
 /**
@@ -171,10 +187,57 @@ function retry(/* func, attempts */) {
  * cos(3.141592653589793) ends
  *
  */
-function logger(/* func, logFunc */) {
-  throw new Error('Not implemented');
+function logger(func, logFunc) {
+  const fName = func.name;
+  return (...e) => {
+    const args = Array.from(e).map((a) => {
+      if (Array.isArray(a)) {
+        return `[${a.map((ae) => {
+          if (typeof ae === 'string') {
+            return `"${ae}"`;
+          }
+          return ae;
+        })}]`;
+      }
+      return a;
+    });
+    logFunc(`${fName}(${args}) starts`);
+    const res = func(...e);
+    logFunc(`${fName}(${args}) ends`);
+    return res;
+  };
 }
+let isCalling = false;
+let log = '';
 
+// const logFunc = (text) => {
+//   log += `${text}\n`;
+//   return log;
+// };
+// const cosLogger = logger(Math.cos, logFunc);
+
+// const actual = cosLogger(Math.PI);
+console.log(isCalling);
+const assert = require('node:assert');
+
+const fn = function testLogger(param, index) {
+  assert.equal(
+    log,
+    'testLogger(["expected","test",1],0) starts\n',
+    'logger function shoud log the start of specified function before calling'
+  );
+  isCalling = true;
+  return param[index];
+};
+
+const logFunc = (text) => {
+  log += `${text}\n`;
+  return log;
+};
+const lg = logger(fn, logFunc);
+
+const actual = lg(['expected', 'test', 1], 0);
+console.log(actual);
 /**
  * Return the function with partial applied arguments
  *

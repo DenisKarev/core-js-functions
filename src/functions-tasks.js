@@ -207,37 +207,7 @@ function logger(func, logFunc) {
     return res;
   };
 }
-let isCalling = false;
-let log = '';
 
-// const logFunc = (text) => {
-//   log += `${text}\n`;
-//   return log;
-// };
-// const cosLogger = logger(Math.cos, logFunc);
-
-// const actual = cosLogger(Math.PI);
-console.log(isCalling);
-const assert = require('node:assert');
-
-const fn = function testLogger(param, index) {
-  assert.equal(
-    log,
-    'testLogger(["expected","test",1],0) starts\n',
-    'logger function shoud log the start of specified function before calling'
-  );
-  isCalling = true;
-  return param[index];
-};
-
-const logFunc = (text) => {
-  log += `${text}\n`;
-  return log;
-};
-const lg = logger(fn, logFunc);
-
-const actual = lg(['expected', 'test', 1], 0);
-console.log(actual);
 /**
  * Return the function with partial applied arguments
  *
